@@ -1,0 +1,6 @@
+[submodule "thirdparty/Triton/Triton"]
+	path = thirdparty/Triton/Triton
+	url = https://github.com/JonathanSalwan/Triton.git
+[submodule "thirdparty/binaryninja-api/binaryninja-api"]
+	path = thirdparty/binaryninja-api/binaryninja-api
+	url = https://github.com/Vector35/binaryninja-api.git
