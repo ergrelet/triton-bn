@@ -2,16 +2,26 @@ cmake_minimum_required(VERSION 3.18)
 
 project(triton-bn)
 
+option(TRITON_BN_BUILD_TESTS "Build test executables" OFF)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CXX_EXTENSIONS OFF)
+
 # Dependencies
 add_subdirectory("thirdparty")
 
 # Plugin module
-add_library(triton_bn_plugin SHARED "src/main.cc")
-target_link_libraries(triton_bn_plugin PRIVATE binaryninjaapi binaryninjaui triton)
-set_target_properties(triton_bn_plugin PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
+add_library(triton_bn_plugin SHARED
+    "src/main.cc"
+    "src/meta_basic_block.h"
+    "src/meta_basic_block.cc"
+    "src/commands.h"
+    "src/commands.cc"
 )
+target_link_libraries(triton_bn_plugin PRIVATE binaryninjaapi binaryninjaui triton)
 
 # Tests
-add_subdirectory("tests")
+if(TRITON_BN_BUILD_TESTS)
+    add_subdirectory("tests")
+endif()

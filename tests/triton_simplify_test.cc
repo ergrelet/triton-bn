@@ -9,6 +9,40 @@
 #define TRITON_INSTR_STR(STR) \
   triton::arch::Instruction { (uint8_t*)STR, (uint32_t)(sizeof(STR) - 1) }
 
+static void bb_test(uint64_t bb_addr,
+                    std::function<triton::arch::BasicBlock()> get_bb,
+                    triton::arch::architecture_e triton_arch) {
+  /* Init the triton context */
+  triton::API triton{};
+  triton.setArchitecture(triton_arch);
+
+  // Process test case
+  auto bb = get_bb();
+  // Disassemble instructions
+  try {
+    triton.disassembly(bb, bb_addr);
+    {
+      std::ostringstream ostr;
+      ostr << bb;
+      printf("Original:\n%s\n", ostr.str().c_str());
+    }
+
+    // Simply basic block
+    auto simplified_bb = triton.simplify(bb);
+
+    // Check result
+    triton.disassembly(simplified_bb, bb_addr);
+    {
+      std::ostringstream ostr;
+      ostr << simplified_bb;
+      printf("Simplified:\n%s\n", ostr.str().c_str());
+    }
+  } catch (triton::exceptions::Exception& ex) {
+    printf("Test failed: %s\n", ex.what());
+    return;
+  }
+}
+
 // Code from VMProtect
 constexpr uint64_t kBB1Address = 0x140004149;
 static triton::arch::BasicBlock get_bb1() {
@@ -71,38 +105,46 @@ static triton::arch::BasicBlock get_bb1() {
   }};
 }
 
-static void bb1_test() {
-  /* Init the triton context */
-  triton::API triton{};
-  triton.setArchitecture(triton::arch::ARCH_X86_64);
+constexpr uint64_t kBB2Address = 0x0042fed1;
+static triton::arch::BasicBlock get_bb2() {
+  return {{
+      TRITON_INSTR_STR("\x03\x00"),      // add     eax, dword [eax]
+      TRITON_INSTR_STR("\x00\x5a\x00"),  // add     byte [edx], bl
+      TRITON_INSTR_STR("\x00\x11"),      // add     byte [ecx], dl
+      TRITON_INSTR_STR("\x20\x3c\x51"),  // and     byte [ecx+edx*2], bh
+      TRITON_INSTR_STR("\x58"),          // pop     eax
+      TRITON_INSTR_STR("\x21\x0a"),      // and     dword [edx], ecx
+      TRITON_INSTR_STR("\x06"),          // push    es
+      TRITON_INSTR_STR("\x20\x78\x4f"),  // and     byte [eax+0x4f], bh
+      TRITON_INSTR_STR("\xcc")           // int3
+  }};
+}
 
-  // Process first test case
-  // Copy `s_bb1`
-  auto bb1 = get_bb1();
-  // Disassemble instructions
-  triton.disassembly(bb1, kBB1Address);
-  {
-    std::ostringstream ostr;
-    ostr << bb1;
-    printf("Original:\n%s\n", ostr.str().c_str());
-  }
-
-  // Simply basic block
-  auto simplified_bb1 = triton.simplify(bb1);
-
-  // Check result
-  triton.disassembly(simplified_bb1, kBB1Address);
-  {
-    std::ostringstream ostr;
-    ostr << simplified_bb1;
-    printf("Simplified:\n%s\n", ostr.str().c_str());
-  }
+constexpr uint64_t kBB3Address = 0x00026db0;
+static triton::arch::BasicBlock get_bb3() {
+  return {{
+      TRITON_INSTR_STR("\xf3\x0f\x1e\xfa"),  // endbr64
+      TRITON_INSTR_STR(
+          "\x48\x8b\x05\xc5\xe0\x03\x00"),       // mov     rax, qword [rel
+                                                 // _vtable_for_QSvgRect]
+      TRITON_INSTR_STR("\x55"),                  // push    rbp
+      TRITON_INSTR_STR("\x48\x89\xfd"),          // mov     rbp, rdi
+      TRITON_INSTR_STR("\x48\x83\xc0\x10"),      // add     rax, 0x10
+      TRITON_INSTR_STR("\x48\x89\x07"),          // mov     qword [rdi], rax
+      TRITON_INSTR_STR("\xe8\x35\xf2\x01\x00"),  // call    QSvgNode::~QSvgNode
+      TRITON_INSTR_STR("\x48\x89\xef"),          // mov     rdi, rbp
+      TRITON_INSTR_STR("\xbe\x80\x01\x00\x00"),  // mov     esi, 0x180
+      TRITON_INSTR_STR("\x5d"),                  // pop     rbp
+      TRITON_INSTR_STR("\xe9\xc7\x0e\xff\xff")   // jmp     operator delete
+  }};
 }
 
 int main(int argc, char* argv[]) {
-  std::printf("Hello World!\n");
+  std::printf("TritonSimplifyTest\n");
 
-  bb1_test();
+  bb_test(kBB1Address, get_bb1, triton::arch::ARCH_X86_64);
+  bb_test(kBB2Address, get_bb2, triton::arch::ARCH_X86);
+  bb_test(kBB3Address, get_bb3, triton::arch::ARCH_X86_64);
 
   return 0;
 }
