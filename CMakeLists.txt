@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
 
+set(VCPKG_OVERLAY_PORTS "${CMAKE_CURRENT_LIST_DIR}/vcpkg-overlay-ports")
+
 project(triton-bn)
 
 option(TRITON_BN_BUILD_TESTS "Build test executables" OFF)
@@ -8,7 +10,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CXX_EXTENSIONS OFF)
 
-# Dependencies
+find_package(triton CONFIG REQUIRED)
+
+# Binary Ninja
 add_subdirectory("thirdparty")
 
 # Plugin module
@@ -19,7 +23,7 @@ add_library(triton_bn_plugin SHARED
     "src/commands.h"
     "src/commands.cc"
 )
-target_link_libraries(triton_bn_plugin PRIVATE binaryninjaapi binaryninjaui triton)
+target_link_libraries(triton_bn_plugin PRIVATE binaryninjaapi triton::triton)
 
 # Tests
 if(TRITON_BN_BUILD_TESTS)

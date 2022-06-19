@@ -1,0 +1,37 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5104cda3..0706b3b9 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -111,16 +111,15 @@ list(APPEND CMAKE_MODULE_PATH "${TRITON_ROOT}/CMakeModules/")
+ # Find Z3
+ if(Z3_INTERFACE)
+     message(STATUS "Compiling with Z3 SMT solver")
+-    find_package(Z3 REQUIRED)
++    find_package(Z3 CONFIG REQUIRED)
+     message(STATUS "Z3 version: ${Z3_VERSION}")
+     if(TARGET z3::libz3)
+         link_libraries(z3::libz3)
+-    elseif(DEFINED Z3_INCLUDE_DIRS)
+-        include_directories(${Z3_INCLUDE_DIRS})
+     else()
+         message(FATAL_ERROR "Unexpected Z3 package search outcome: neither target z3::libz3 not variable Z3_INCLUDE_DIRS exists.")
+     endif()
+     set(TRITON_Z3_INTERFACE ON)
++    set(Z3_LIBRARIES z3::libz3)
+ endif()
+
+ # Find bitwuzla
+diff --git a/src/libtriton/Config.cmake.in b/src/libtriton/Config.cmake.in
+index 90cf6bfe..33f27d23 100644
+--- a/src/libtriton/Config.cmake.in
++++ b/src/libtriton/Config.cmake.in
+@@ -47,8 +47,7 @@ endif()
+ 
+ # Z3 include directories
+ if (TRITON_Z3_INTERFACE)
+-    include_directories("@Z3_INCLUDE_DIRS@")
+-    link_directories(BEFORE "@Z3_LIB_DIR@")
++    find_dependency(Z3 CONFIG)
+ endif()
+ 
+ # Bitwuzla include directories

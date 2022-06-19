@@ -1,14 +1,17 @@
 # triton-bn
 
-## Prerequisites
-
-On Fedora:
-```
-# dnf install qt6-qtbase-devel capstone-devel z3-devel
-```
-
 ## How to Build
 
+On Windows:
 ```
-$ cmake -B build
+$ ./vcpkg/bootstrap-vcpkg.bat
+$ cmake -B build -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
+$ cmake --build build --config Release -- -maxcpucount
+```
+
+On Linux distributions:
+```
+$ ./vcpkg/bootstrap-vcpkg.sh
+$ cmake -B build -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
+$ cmake --build build -- -j$(nproc)
 ```

@@ -16,7 +16,7 @@ struct MetaBasicBlock {
       : triton_bb_(triton_bb),
         binja_bb_(binja_bb),
         outgoing_edges_(binja_bb_->GetOutgoingEdges()) {
-    assert(binja_bb_ != nullptr);
+    assert(binja_bb_.GetPtr() != nullptr);
   }
 
   triton::arch::BasicBlock& triton_bb() { return triton_bb_; }

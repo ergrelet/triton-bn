@@ -1,7 +1,5 @@
 #include "commands.h"
 
-#include <uicontext.h>
-
 #include <algorithm>
 #include <format>
 #include <iostream>
@@ -19,11 +17,6 @@ static FlowGraph* GenerateFlowGraphFromMetaBasicBlocks(
 
 void SimplifyBasicBlockCommand(BinaryNinja::BinaryView* p_view) {
   BinaryView& view = *p_view;
-
-  UIContext* p_active_ui_ctx = UIContext::activeContext();
-  if (p_active_ui_ctx == nullptr) {
-    return;
-  }
 
   // Get currently selected address in the view
   const auto current_offset = view.GetCurrentOffset();
@@ -74,11 +67,6 @@ bool ValidateSimplifyBasicBlockCommand(BinaryView* p_view) {
 
 void SimplifyFunctionCommand(BinaryView* p_view) {
   BinaryView& view = *p_view;
-
-  UIContext* p_active_ui_ctx = UIContext::activeContext();
-  if (p_active_ui_ctx == nullptr) {
-    return;
-  }
 
   // Get currently selected address in the view
   const auto current_offset = view.GetCurrentOffset();

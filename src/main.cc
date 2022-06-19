@@ -1,5 +1,4 @@
 #include <binaryninjaapi.h>
-#include <uicontext.h>
 
 #include "commands.h"
 
@@ -7,9 +6,9 @@ using namespace BinaryNinja;
 
 extern "C" {
 
-BN_DECLARE_UI_ABI_VERSION
+BN_DECLARE_CORE_ABI_VERSION
 
-BINARYNINJAPLUGIN bool UIPluginInit() {
+BINARYNINJAPLUGIN bool CorePluginInit() {
   auto settings = Settings::Instance();
   settings->RegisterGroup("triton-bn", "triton-bn");
   settings->RegisterSetting("triton-bn.mergeBasicBlocks", R"({

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "triton-bn",
+  "version": "0.1.0",
+  "description": "TODO",
+  "homepage": "https://github.com/ergrelet/triton-bn",
+  "license": "Apache-2.0",
+  "supports": "!arm",
+  "builtin-baseline": "b49b2bdf22559c89eddbf29a29621a1dc6929320",
+  "dependencies": [
+    {
+      "name": "triton",
+      "version>=": "0.9#4"
+    }
+  ]
+}
