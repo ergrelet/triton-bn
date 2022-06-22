@@ -1,7 +1,8 @@
 #include "commands.h"
 
+#include <fmt/format.h>
+
 #include <algorithm>
-#include <format>
 #include <iostream>
 #include <unordered_map>
 #include <vector>
@@ -57,7 +58,7 @@ void SimplifyBasicBlockCommand(BinaryNinja::BinaryView* p_view) {
       GenerateFlowGraphFromMetaBasicBlocks(std::move(simplified_basic_blocks));
 
   const std::string report_title =
-      std::format("Simplified basic block (0x{:x})", basic_block->GetStart());
+      fmt::format("Simplified basic block (0x{:x})", basic_block->GetStart());
   view.ShowGraphReport(report_title, flow_graph);
 }
 
@@ -114,7 +115,7 @@ void SimplifyFunctionCommand(BinaryView* p_view) {
   const std::string current_function_name =
       current_function->GetSymbol()->GetFullName();
   const std::string report_title =
-      std::format("Simplified function ({})", current_function_name);
+      fmt::format("Simplified function ({})", current_function_name);
   FlowGraph* flow_graph =
       GenerateFlowGraphFromMetaBasicBlocks(std::move(simplified_basic_blocks));
   view.ShowGraphReport(report_title, flow_graph);

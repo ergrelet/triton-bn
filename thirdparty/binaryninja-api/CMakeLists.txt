@@ -1,6 +1,3 @@
-# set(HEADLESS TRUE)
-# add_subdirectory("binaryninja-api" EXCLUDE_FROM_ALL)
-
 include(FetchContent)
 
 if(TRITON_BN_BINARYNINJA_CHANNEL STREQUAL "stable")
