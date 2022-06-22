@@ -6,7 +6,7 @@
   "homepage": "https://github.com/ergrelet/triton-bn",
   "license": "Apache-2.0",
   "supports": "!arm",
-  "builtin-baseline": "b49b2bdf22559c89eddbf29a29621a1dc6929320",
+  "builtin-baseline": "3d8f78171a2a37d461077bf8d063256b63e25a4f",
   "dependencies": [
     "fmt",
     {

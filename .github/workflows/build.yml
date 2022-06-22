@@ -1,0 +1,66 @@
+name: build
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: ubuntu-20.04
+        - os: windows-2019
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v3
+
+    - name: Create Build Environment
+      env:
+        RUNNER_WORKSPACE: ${{ runner.workspace }}
+      working-directory: ${{ github.workspace }}
+      shell: bash
+      run: |
+        ./vcpkg/bootstrap-vcpkg.sh
+        cmake -E make_directory "${RUNNER_WORKSPACE}/build"
+
+    - name: Enable Developer Command Prompt (Windows)
+      if: matrix.os == 'windows-2019'
+      uses: ilammy/msvc-dev-cmd@v1.7.0
+
+    - name: Configure CMake
+      working-directory: ${{ runner.workspace }}/build
+      shell: bash
+      run: |
+        cmake "${GITHUB_WORKSPACE}" -G Ninja \
+          "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" \
+          "-DCMAKE_TOOLCHAIN_FILE=${GITHUB_WORKSPACE}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+    - name: Build
+      working-directory: ${{ runner.workspace }}/build
+      shell: bash
+      run: cmake --build . --config "${BUILD_TYPE}"
+
+    - name: Upload Build Artifacts (Windows)
+      if: matrix.os == 'windows-2019'
+      uses: actions/upload-artifact@v3
+      with:
+          name: triton_bn_win64
+          path: ${{ runner.workspace }}\build\*.dll
+          retention-days: 3
+
+    - name: Upload Build Artifacts (Ubuntu)
+      if: matrix.os == 'ubuntu-20.04'
+      uses: actions/upload-artifact@v3
+      with:
+          name: triton_bn_ubuntu2004
+          path: ${{ runner.workspace }}/build/*.so
+          retention-days: 3
