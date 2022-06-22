@@ -1,6 +1,3 @@
-[submodule "thirdparty/binaryninja-api/binaryninja-api"]
-	path = thirdparty/binaryninja-api/binaryninja-api
-	url = https://github.com/Vector35/binaryninja-api.git
 [submodule "vcpkg"]
 	path = vcpkg
 	url = https://github.com/microsoft/vcpkg.git

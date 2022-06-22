@@ -6,6 +6,9 @@ project(triton-bn)
 
 option(TRITON_BN_BUILD_TESTS "Build test executables" OFF)
 
+set(TRITON_BN_BINARYNINJA_CHANNEL "stable" CACHE
+    STRING "Binary Ninja channel, either 'stable' or 'dev'")
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CXX_EXTENSIONS OFF)
@@ -23,7 +26,7 @@ add_library(triton_bn_plugin SHARED
     "src/commands.h"
     "src/commands.cc"
 )
-target_link_libraries(triton_bn_plugin PRIVATE binaryninjaapi triton::triton)
+target_link_libraries(triton_bn_plugin PRIVATE BinaryNinja::API triton::triton)
 
 # Tests
 if(TRITON_BN_BUILD_TESTS)
