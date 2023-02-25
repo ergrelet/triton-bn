@@ -3,11 +3,11 @@ include(FetchContent)
 if(TRITON_BN_BINARYNINJA_CHANNEL STREQUAL "stable")
     set(_binexport_binaryninjacore_suffix "_stable")
     set(_binexport_binaryninja_git_tag
-        "14905bd51979f4f55dfe3e0b299d9a33d9343ef6") # 2022-05-26
+        "919384bb2bb9216e000750a00793549ef7a46d87") # 2023-01-17
 else()
     set(_binexport_binaryninjacore_suffix "")
     set(_binexport_binaryninja_git_tag
-        "4bb510c2e4456606e03acfc6970bf8697156769e") # 2022-06-02
+        "9d8bc846bd213407fb1a7a19af2a96f17501ac3b") # 2023-02-15
 endif()
 FetchContent_Declare(binaryninjaapi
     GIT_REPOSITORY https://github.com/Vector35/binaryninja-api.git
