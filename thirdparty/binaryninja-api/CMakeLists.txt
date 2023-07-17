@@ -1,13 +1,12 @@
 include(FetchContent)
 
 if(TRITON_BN_BINARYNINJA_CHANNEL STREQUAL "stable")
-    set(_binexport_binaryninjacore_suffix "_stable")
-    set(_binexport_binaryninja_git_tag
-        "919384bb2bb9216e000750a00793549ef7a46d87") # 2023-01-17
+    set(_triton_bn_binaryninjacore_suffix "_stable")
+    set(_triton_bn_binaryninja_git_tag "v3.4.4271-stable") # 2023-05-01
 else()
-    set(_binexport_binaryninjacore_suffix "")
-    set(_binexport_binaryninja_git_tag
-        "9d8bc846bd213407fb1a7a19af2a96f17501ac3b") # 2023-02-15
+    set(_triton_bn_binaryninjacore_suffix "")
+    set(_triton_bn_binaryninja_git_tag
+        "1bd42a73e612f50c68d802acda674c21a30e980c") # 2023-05-18
 endif()
 FetchContent_Declare(binaryninjaapi
     GIT_REPOSITORY https://github.com/Vector35/binaryninja-api.git
