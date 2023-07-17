@@ -13,7 +13,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(fmt CONFIG REQUIRED)
 find_package(triton CONFIG REQUIRED)
 
 # Binary Ninja
@@ -29,7 +28,6 @@ add_library(triton_bn_plugin SHARED
 )
 target_link_libraries(triton_bn_plugin PRIVATE
     BinaryNinja::API
-    fmt::fmt-header-only
     triton::triton
 )
 

@@ -8,7 +8,6 @@
   "supports": "!arm",
   "builtin-baseline": "3d8f78171a2a37d461077bf8d063256b63e25a4f",
   "dependencies": [
-    "fmt",
     {
       "name": "triton",
       "version>=": "0.9#4"
