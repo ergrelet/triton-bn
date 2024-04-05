@@ -1,4 +1,4 @@
-# triton-bn
+# triton-bn ![Static Badge](https://img.shields.io/badge/Binary_Ninja_API-v4.0.x-blue)
 
 `triton-bn` is a small Binary Ninja plugin that can be used to apply
 [Triton](https://github.com/jonathansalwan/Triton)'s dead store eliminitation
