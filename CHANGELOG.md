@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Add support for ARM64 binaries
+
 ## [0.1.1] - 2024-04-06
 
 ### Changed

@@ -6,6 +6,8 @@ namespace triton_bn {
 
 using namespace BinaryNinja;
 
+static bool IsCallInstruction(const triton::arch::Instruction&);
+static bool IsJumpInstruction(const triton::arch::Instruction& instr);
 static void MergeLinkedBasicBlocks(const BasicBlockEdge& edge,
                                    MetaBasicBlock& root_bb,
                                    MetaBasicBlock& target_bb);
@@ -41,7 +43,6 @@ std::vector<MetaBasicBlock> ExtractMetaBasicBlocksFromBasicBlock(
                                           max_instr_len, binja_instruction)) {
       continue;
     }
-    LogDebug("0x%p - %zu", (void*)cur_instr_addr, binja_instruction.length);
 
     // Add disassembled instruction to the basic block
     triton::arch::Instruction new_instr(
@@ -55,10 +56,11 @@ std::vector<MetaBasicBlock> ExtractMetaBasicBlocksFromBasicBlock(
       return {};
     }
     triton_bb.add(new_instr);
+    LogDebug("0x%p - %zu - '%s'", (void*)cur_instr_addr,
+             binja_instruction.length, new_instr.getDisassembly().c_str());
 
     // Split basic blocks on `call` instructions to make them simplifiable
-    // TODO: Fix for ARM64
-    if (new_instr.getDisassembly().find("call") == 0) {
+    if (IsCallInstruction(new_instr)) {
       LogDebug("call detected: %s", new_instr.getDisassembly().c_str());
       // Add basic block to the result
       result.emplace_back(MetaBasicBlock(triton_bb, basic_block));
@@ -175,8 +177,8 @@ static void MergeLinkedBasicBlocks(const BasicBlockEdge& edge,
     const triton::arch::Instruction last_instr =
         cur_triton_bb.getInstructions()[last_instr_index];
     // Remove last instruction if it's a `jmp`
-    // TODO: Fix for ARM64
-    if (last_instr.getDisassembly().find("jmp") == 0) {
+    if (IsJumpInstruction(last_instr)) {
+      LogDebug("jump detected: %s", last_instr.getDisassembly().c_str());
       cur_triton_bb.remove(last_instr_index);
     }
   }
@@ -188,6 +190,34 @@ static void MergeLinkedBasicBlocks(const BasicBlockEdge& edge,
   root_bb.RemoveOutgoingEdge(edge);
   // Merge Binja's outgoing edges
   root_bb.AddOutgoingEdges(target_bb.outgoing_edges());
+}
+
+static bool IsCallInstruction(const triton::arch::Instruction& instr) {
+  switch (instr.getArchitecture()) {
+    case triton::arch::ARCH_X86_64:
+    case triton::arch::ARCH_X86:
+      return instr.getDisassembly().find("call") == 0;
+    case triton::arch::ARCH_AARCH64:
+      // Match `bl` and `blr`
+      return instr.getDisassembly().find("bl") == 0;
+    default:
+      return false;
+  }
+}
+
+static bool IsJumpInstruction(const triton::arch::Instruction& instr) {
+  switch (instr.getArchitecture()) {
+    case triton::arch::ARCH_X86_64:
+    case triton::arch::ARCH_X86:
+      return instr.getDisassembly().find("jmp") == 0;
+    case triton::arch::ARCH_AARCH64: {
+      const std::string disassembly = instr.getDisassembly();
+      // Match `b` but not `bl` or `bl.XX`, so we add a space at the end
+      return disassembly.find("b ") == 0;
+    }
+    default:
+      return false;
+  }
 }
 
 // Simplify the given `MetaBasicBlock`s with Triton's dead store elimination

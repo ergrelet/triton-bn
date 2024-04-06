@@ -44,6 +44,11 @@ void SimplifyBasicBlockCommand(BinaryNinja::BinaryView* p_view) {
     triton.setArchitecture(triton::arch::ARCH_X86_64);
   } else if (architecture_name == "x86") {
     triton.setArchitecture(triton::arch::ARCH_X86);
+  } else if (architecture_name == "aarch64") {
+    triton.setArchitecture(triton::arch::ARCH_AARCH64);
+  } else {
+    LogError("Unsupported architecture '%s'", architecture_name.c_str());
+    return;
   }
 
   auto meta_basic_blocks =
@@ -95,6 +100,11 @@ void SimplifyFunctionCommand(BinaryView* p_view) {
     triton.setArchitecture(triton::arch::ARCH_X86_64);
   } else if (architecture_name == "x86") {
     triton.setArchitecture(triton::arch::ARCH_X86);
+  } else if (architecture_name == "aarch64") {
+    triton.setArchitecture(triton::arch::ARCH_AARCH64);
+  } else {
+    LogError("Unsupported architecture '%s'", architecture_name.c_str());
+    return;
   }
 
   // Create `MetaBasicBlock`s from the current Binja function's basic blocks
@@ -130,7 +140,8 @@ bool ValidateSimplifyFunctionCommand(BinaryView* p_view) {
   // Check platform compatibility
   const std::string architecture_name =
       view.GetDefaultArchitecture()->GetName();
-  if (architecture_name != "x86_64" && architecture_name != "x86") {
+  if (architecture_name != "x86_64" && architecture_name != "x86" &&
+      architecture_name != "aarch64") {
     LogError("Unsupported architecture");
     return false;
   }

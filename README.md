@@ -2,7 +2,8 @@
 
 `triton-bn` is a small Binary Ninja plugin that can be used to apply
 [Triton](https://github.com/jonathansalwan/Triton)'s dead store eliminitation
-pass on basic blocks or functions.
+pass on basic blocks or functions.  
+The plugin supports the `x86_64`, `x86` and `aarch64` architectures.
 
 This plugin may also serve as a base for people that would want to play with
 Triton inside of Binary Ninja.
@@ -33,5 +34,4 @@ files:
 
 
 ## Know Limitations
-* Doesn't support ARM64 binaries
-* Instructions  that use RIP-relative addressing aren't relocated properly after simplification
+* Instructions  that use RIP/PC-relative addressing aren't relocated properly after simplification
