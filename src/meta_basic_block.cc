@@ -212,8 +212,9 @@ static bool IsJumpInstruction(const triton::arch::Instruction& instr) {
       return instr.getDisassembly().find("jmp") == 0;
     case triton::arch::ARCH_AARCH64: {
       const std::string disassembly = instr.getDisassembly();
-      // Match `b` but not `bl` or `bl.XX`, so we add a space at the end
-      return disassembly.find("b ") == 0;
+      // Match `b` and `br` but not `bl` or `bl.XX`, so we add a space at the
+      // end
+      return disassembly.find("b ") == 0 || disassembly.find("br ") == 0;
     }
     default:
       return false;
