@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
 
-set(VCPKG_OVERLAY_PORTS "${CMAKE_CURRENT_LIST_DIR}/vcpkg-overlay-ports")
-
 project("triton-bn" LANGUAGES CXX)
 
 option(TRITON_BN_BUILD_TESTS "Build test executables" OFF)

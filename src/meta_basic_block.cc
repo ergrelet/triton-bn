@@ -1,6 +1,7 @@
 #include "meta_basic_block.h"
 
 #include <iterator>
+#include <triton/context.hpp>
 
 namespace triton_bn {
 
@@ -15,7 +16,7 @@ static void MergeLinkedBasicBlocks(const BasicBlockEdge& edge,
 // Transform a given "Binary Ninja" basic block into one or several
 // `MetaBasicBlock`s that can be simplified with Triton
 std::vector<MetaBasicBlock> ExtractMetaBasicBlocksFromBasicBlock(
-    BinaryView& view, Ref<BasicBlock> basic_block, triton::API& triton) {
+    BinaryView& view, Ref<BasicBlock> basic_block, triton::Context& triton) {
   // TODO: Merge fallthrough automatically?
   std::vector<MetaBasicBlock> result{};
   triton::arch::BasicBlock triton_bb{};
@@ -76,7 +77,7 @@ std::vector<MetaBasicBlock> ExtractMetaBasicBlocksFromBasicBlock(
 // Same as `ExtractMetaBasicBlocksFromBasicBlock`, except we extract
 // `MetaBasicBlock`s from the basic blocks of a given "Binary Ninja" function.
 std::vector<MetaBasicBlock> ExtractMetaBasicBlocksFromFunction(
-    BinaryView& view, Ref<Function> function, triton::API& triton) {
+    BinaryView& view, Ref<Function> function, triton::Context& triton) {
   std::vector<MetaBasicBlock> func_meta_basic_blocks{};
 
   // Iterate through the basic blocks
@@ -224,7 +225,7 @@ static bool IsJumpInstruction(const triton::arch::Instruction& instr) {
 // Simplify the given `MetaBasicBlock`s with Triton's dead store elimination
 // pass
 std::vector<MetaBasicBlock> SimplifyMetaBasicBlocks(
-    const triton::API& triton, std::vector<MetaBasicBlock> basic_blocks) {
+    const triton::Context& triton, std::vector<MetaBasicBlock> basic_blocks) {
   // Simplify basic blocks
   std::vector<MetaBasicBlock> simplified_basic_blocks(basic_blocks.size());
   {
@@ -235,7 +236,7 @@ std::vector<MetaBasicBlock> SimplifyMetaBasicBlocks(
         std::begin(simplified_basic_blocks),
         [&](MetaBasicBlock meta_bb) -> MetaBasicBlock {
           // Intialize Triton's context
-          triton::API triton{};
+          triton::Context triton{};
           triton.setArchitecture(triton_arch);
 
           // Simplify basic blocks and disassemble the result

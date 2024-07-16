@@ -39,7 +39,7 @@ void SimplifyBasicBlockCommand(BinaryNinja::BinaryView* p_view) {
       view.GetDefaultArchitecture()->GetName();
   LogDebug("Architecture is '%s'", architecture_name.c_str());
 
-  triton::API triton{};
+  triton::Context triton{};
   if (architecture_name == "x86_64") {
     triton.setArchitecture(triton::arch::ARCH_X86_64);
   } else if (architecture_name == "x86") {
@@ -95,7 +95,7 @@ void SimplifyFunctionCommand(BinaryView* p_view) {
   LogDebug("Architecture is '%s'", architecture_name.c_str());
 
   // Intialize Triton's context
-  triton::API triton{};
+  triton::Context triton{};
   if (architecture_name == "x86_64") {
     triton.setArchitecture(triton::arch::ARCH_X86_64);
   } else if (architecture_name == "x86") {

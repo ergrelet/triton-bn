@@ -10,7 +10,7 @@
   "dependencies": [
     {
       "name": "triton",
-      "version>=": "0.9#4"
+      "version>=": "2023-08-16"
     }
   ]
 }

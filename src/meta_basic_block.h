@@ -3,8 +3,8 @@
 #include <binaryninjaapi.h>
 
 #include <cassert>
-#include <triton/api.hpp>
 #include <triton/basicBlock.hpp>
+#include <triton/context.hpp>
 #include <vector>
 
 namespace triton_bn {
@@ -61,16 +61,17 @@ struct MetaBasicBlock {
 
 std::vector<MetaBasicBlock> ExtractMetaBasicBlocksFromBasicBlock(
     BinaryNinja::BinaryView& view,
-    BinaryNinja::Ref<BinaryNinja::BasicBlock> basic_block, triton::API& triton);
+    BinaryNinja::Ref<BinaryNinja::BasicBlock> basic_block,
+    triton::Context& triton);
 
 std::vector<MetaBasicBlock> ExtractMetaBasicBlocksFromFunction(
     BinaryNinja::BinaryView& view,
-    BinaryNinja::Ref<BinaryNinja::Function> function, triton::API& triton);
+    BinaryNinja::Ref<BinaryNinja::Function> function, triton::Context& triton);
 
 std::vector<MetaBasicBlock> MergeMetaBasicBlocks(
     std::vector<MetaBasicBlock> basic_blocks);
 
 std::vector<MetaBasicBlock> SimplifyMetaBasicBlocks(
-    const triton::API& triton, std::vector<MetaBasicBlock> basic_blocks);
+    const triton::Context& triton, std::vector<MetaBasicBlock> basic_blocks);
 
 }  // namespace triton_bn
