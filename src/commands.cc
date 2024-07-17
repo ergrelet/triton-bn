@@ -13,22 +13,63 @@ namespace triton_bn {
 
 using namespace BinaryNinja;
 
+static std::vector<MetaBasicBlock> SimplifyBasicBlockCommon(
+    BinaryNinja::BinaryView* p_view, bool padding);
+static std::vector<MetaBasicBlock> SimplifyFunctionCommon(BinaryView* p_view,
+                                                          bool padding);
 static FlowGraph* GenerateFlowGraphFromMetaBasicBlocks(
     std::vector<MetaBasicBlock> basic_blocks);
 
-void SimplifyBasicBlockCommand(BinaryNinja::BinaryView* p_view) {
-  BinaryView& view = *p_view;
+void SimplifyBasicBlockPreviewCommand(BinaryNinja::BinaryView* p_view) {
+  auto simplified_basic_blocks = SimplifyBasicBlockCommon(p_view, false);
+  if (simplified_basic_blocks.empty()) {
+    LogError("Failed to simplify basic block");
+    return;
+  }
 
+  // Construct result flow graph and display it
+  FlowGraph* flow_graph =
+      GenerateFlowGraphFromMetaBasicBlocks(std::move(simplified_basic_blocks));
+
+  const std::string report_title = fmt::format(
+      "Simplified basic block (0x{:x})", simplified_basic_blocks[0].GetStart());
+  p_view->ShowGraphReport(report_title, flow_graph);
+
+  LogInfo("Basic block has been simplified and preview rendered");
+}
+
+void SimplifyBasicBlockPatchCommand(BinaryNinja::BinaryView* p_view) {
+  auto simplified_basic_blocks = SimplifyBasicBlockCommon(p_view, true);
+  if (simplified_basic_blocks.empty()) {
+    LogError("Failed to simplify basic block");
+    return;
+  }
+
+  // Patch code
+  for (auto& basic_block : simplified_basic_blocks) {
+    for (auto& instruction : basic_block.triton_bb().getInstructions()) {
+      p_view->Write(instruction.getAddress(), instruction.getOpcode(),
+                    instruction.getSize());
+    }
+  }
+  // Rerun analysis
+  p_view->UpdateAnalysis();
+
+  LogInfo("Basic block has been simplified and patches applied");
+}
+
+static std::vector<MetaBasicBlock> SimplifyBasicBlockCommon(
+    BinaryNinja::BinaryView* p_view, bool padding) {
   // Get currently selected address in the view
-  const auto current_offset = view.GetCurrentOffset();
+  const auto current_offset = p_view->GetCurrentOffset();
   LogDebug("Current offset=0x%p", (void*)current_offset);
 
   // Find the function in which this address resides
   const auto candidate_basic_blocks =
-      view.GetBasicBlocksForAddress(current_offset);
+      p_view->GetBasicBlocksForAddress(current_offset);
   if (candidate_basic_blocks.empty()) {
     LogError("Failed to find the currently selected basic block");
-    return;
+    return {};
   }
   // TODO: Alert the users if multiple candidate basic blocks exist?
   const auto basic_block = candidate_basic_blocks[0];
@@ -36,7 +77,7 @@ void SimplifyBasicBlockCommand(BinaryNinja::BinaryView* p_view) {
 
   // Determine the current platform/architecture
   const std::string architecture_name =
-      view.GetDefaultArchitecture()->GetName();
+      p_view->GetDefaultArchitecture()->GetName();
   LogDebug("Architecture is '%s'", architecture_name.c_str());
 
   triton::Context triton{};
@@ -48,42 +89,79 @@ void SimplifyBasicBlockCommand(BinaryNinja::BinaryView* p_view) {
     triton.setArchitecture(triton::arch::ARCH_AARCH64);
   } else {
     LogError("Unsupported architecture '%s'", architecture_name.c_str());
-    return;
+    return {};
   }
 
   auto meta_basic_blocks =
-      ExtractMetaBasicBlocksFromBasicBlock(view, basic_block, triton);
+      ExtractMetaBasicBlocksFromBasicBlock(*p_view, basic_block, triton);
 
   // Simplify basic block
-  auto simplified_basic_blocks =
-      SimplifyMetaBasicBlocks(triton, std::move(meta_basic_blocks));
-
-  // Construct result flow graph and display it
-  FlowGraph* flow_graph =
-      GenerateFlowGraphFromMetaBasicBlocks(std::move(simplified_basic_blocks));
-
-  const std::string report_title =
-      fmt::format("Simplified basic block (0x{:x})", basic_block->GetStart());
-  view.ShowGraphReport(report_title, flow_graph);
+  return SimplifyMetaBasicBlocks(triton, std::move(meta_basic_blocks), padding);
 }
 
 bool ValidateSimplifyBasicBlockCommand(BinaryView* p_view) {
   return ValidateSimplifyFunctionCommand(p_view);
 }
 
-void SimplifyFunctionCommand(BinaryView* p_view) {
-  BinaryView& view = *p_view;
+void SimplifyFunctionPreviewCommand(BinaryView* p_view) {
+  auto simplified_basic_blocks = SimplifyFunctionCommon(p_view, false);
+  if (simplified_basic_blocks.empty()) {
+    LogError("Failed to simplify function");
+    return;
+  }
 
+  // Construct result flow graph and display it
+  const auto candidate_functions =
+      p_view->GetAnalysisFunctionsContainingAddress(
+          simplified_basic_blocks[0].GetStart());
+  if (candidate_functions.empty()) {
+    LogError("Failed to simplify function");
+    return;
+  }
+
+  const std::string current_function_name =
+      candidate_functions[0]->GetSymbol()->GetFullName();
+  const std::string report_title =
+      fmt::format("Simplified function ({})", current_function_name);
+  FlowGraph* flow_graph =
+      GenerateFlowGraphFromMetaBasicBlocks(std::move(simplified_basic_blocks));
+  p_view->ShowGraphReport(report_title, flow_graph);
+
+  LogInfo("Function has been simplified and preview rendered");
+}
+
+void SimplifyFunctionPatchCommand(BinaryView* p_view) {
+  auto simplified_basic_blocks = SimplifyFunctionCommon(p_view, true);
+  if (simplified_basic_blocks.empty()) {
+    LogError("Failed to simplify function");
+    return;
+  }
+
+  // Patch code
+  for (auto& basic_block : simplified_basic_blocks) {
+    for (auto& instruction : basic_block.triton_bb().getInstructions()) {
+      p_view->Write(instruction.getAddress(), instruction.getOpcode(),
+                    instruction.getSize());
+    }
+  }
+  // Rerun analysis
+  p_view->UpdateAnalysis();
+
+  LogInfo("Function has been simplified and patches applied");
+}
+
+static std::vector<MetaBasicBlock> SimplifyFunctionCommon(BinaryView* p_view,
+                                                          bool padding) {
   // Get currently selected address in the view
-  const auto current_offset = view.GetCurrentOffset();
+  const auto current_offset = p_view->GetCurrentOffset();
   LogDebug("Current offset=0x%p", (void*)current_offset);
 
   // Find the function in which this address resides
   const auto candidate_functions =
-      view.GetAnalysisFunctionsContainingAddress(current_offset);
+      p_view->GetAnalysisFunctionsContainingAddress(current_offset);
   if (candidate_functions.empty()) {
     LogError("Failed to find the currently selected function");
-    return;
+    return {};
   }
   // TODO: Alert the users if multiple candidate functions exist
   const auto current_function = candidate_functions[0];
@@ -91,7 +169,7 @@ void SimplifyFunctionCommand(BinaryView* p_view) {
 
   // Determine the current architecture
   const std::string architecture_name =
-      view.GetDefaultArchitecture()->GetName();
+      p_view->GetDefaultArchitecture()->GetName();
   LogDebug("Architecture is '%s'", architecture_name.c_str());
 
   // Intialize Triton's context
@@ -104,12 +182,12 @@ void SimplifyFunctionCommand(BinaryView* p_view) {
     triton.setArchitecture(triton::arch::ARCH_AARCH64);
   } else {
     LogError("Unsupported architecture '%s'", architecture_name.c_str());
-    return;
+    return {};
   }
 
   // Create `MetaBasicBlock`s from the current Binja function's basic blocks
   auto meta_basic_blocks =
-      ExtractMetaBasicBlocksFromFunction(view, current_function, triton);
+      ExtractMetaBasicBlocksFromFunction(*p_view, current_function, triton);
   LogDebug("%zu meta basic block(s) extracted", meta_basic_blocks.size());
 
   if (Settings::Instance()->Get<bool>("triton-bn.mergeBasicBlocks")) {
@@ -118,17 +196,7 @@ void SimplifyFunctionCommand(BinaryView* p_view) {
   }
 
   // Simplify basic blocks
-  auto simplified_basic_blocks =
-      SimplifyMetaBasicBlocks(triton, std::move(meta_basic_blocks));
-
-  // Construct result flow graph and display it
-  const std::string current_function_name =
-      current_function->GetSymbol()->GetFullName();
-  const std::string report_title =
-      fmt::format("Simplified function ({})", current_function_name);
-  FlowGraph* flow_graph =
-      GenerateFlowGraphFromMetaBasicBlocks(std::move(simplified_basic_blocks));
-  view.ShowGraphReport(report_title, flow_graph);
+  return SimplifyMetaBasicBlocks(triton, std::move(meta_basic_blocks), padding);
 }
 
 bool ValidateSimplifyFunctionCommand(BinaryView* p_view) {

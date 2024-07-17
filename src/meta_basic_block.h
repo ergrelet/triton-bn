@@ -72,6 +72,7 @@ std::vector<MetaBasicBlock> MergeMetaBasicBlocks(
     std::vector<MetaBasicBlock> basic_blocks);
 
 std::vector<MetaBasicBlock> SimplifyMetaBasicBlocks(
-    const triton::Context& triton, std::vector<MetaBasicBlock> basic_blocks);
+    const triton::Context& triton, std::vector<MetaBasicBlock> basic_blocks,
+    bool padding = false);
 
 }  // namespace triton_bn

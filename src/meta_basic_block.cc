@@ -235,16 +235,11 @@ static triton::arch::BasicBlock RemoveNopLikeInstructions(
   triton::arch::BasicBlock in = triton_bb;
   triton::arch::BasicBlock out;
 
-  const auto nop_instr = [&]() {
-    triton::Context tmp_ctx(triton.getArchitecture());
-    return tmp_ctx.getNopInstruction();
-  }();
-
   triton::arch::Architecture arch;
   arch.setArchitecture(triton.getArchitecture());
+  const auto nop_instr = arch.getNopInstruction();
   const auto& pc_reg = arch.getProgramCounter();
 
-  auto last_addr = in.getFirstAddress();
   for (auto& instr : in.getInstructions()) {
     triton::Context tmp_ctx(triton.getArchitecture());
     // Symbolize all registers
@@ -299,16 +294,16 @@ static triton::arch::BasicBlock RemoveNopLikeInstructions(
       LogDebugF("NOP-like instruction removed: '{}'", instr.getDisassembly());
       if (padding) {
         // Replace with a nop padding of the appropriate size
-        while (instr.getAddress() > last_addr) {
+        size_t padding_size = 0;
+        while (instr.getSize() > padding_size) {
           out.add(nop_instr);
-          last_addr += nop_instr.getSize();
+          padding_size += nop_instr.getSize();
         }
       }
     } else {
       // Instruction has side effects, keep it in the basic block
       out.add(instr);
     }
-    last_addr = instr.getNextAddress();
   }
 
   return out;
@@ -317,7 +312,8 @@ static triton::arch::BasicBlock RemoveNopLikeInstructions(
 // Simplify the given `MetaBasicBlock`s with Triton's dead store elimination
 // pass
 std::vector<MetaBasicBlock> SimplifyMetaBasicBlocks(
-    const triton::Context& triton, std::vector<MetaBasicBlock> basic_blocks) {
+    const triton::Context& triton, std::vector<MetaBasicBlock> basic_blocks,
+    bool padding) {
   // Simplify basic blocks
   std::vector<MetaBasicBlock> simplified_basic_blocks(basic_blocks.size());
   {
@@ -333,9 +329,10 @@ std::vector<MetaBasicBlock> SimplifyMetaBasicBlocks(
 
           // Simplify basic blocks and disassemble the result
           try {
-            auto simplified_triton_bb = triton.simplify(meta_bb.triton_bb());
-            simplified_triton_bb =
-                RemoveNopLikeInstructions(triton, simplified_triton_bb);
+            auto simplified_triton_bb =
+                triton.simplify(meta_bb.triton_bb(), padding);
+            simplified_triton_bb = RemoveNopLikeInstructions(
+                triton, simplified_triton_bb, padding);
             triton.disassembly(simplified_triton_bb, meta_bb.GetStart());
             meta_bb.set_triton_bb(simplified_triton_bb);
             return std::move(meta_bb);
