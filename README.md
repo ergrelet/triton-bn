@@ -34,4 +34,4 @@ files:
 
 
 ## Know Limitations
-* Instructions  that use RIP/PC-relative addressing aren't relocated properly after simplification
+* Instructions  that use RIP/PC-relative addressing aren't relocated properly in preview mode

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project("triton-bn" LANGUAGES CXX)
+project("triton-bn" VERSION 0.2.0 LANGUAGES CXX)
 
 option(TRITON_BN_BUILD_TESTS "Build test executables" OFF)
 
